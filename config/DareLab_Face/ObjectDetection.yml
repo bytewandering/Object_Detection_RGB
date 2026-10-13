@@ -1,0 +1,85 @@
+task_name: TrainingTask_Object_Detection_RGB
+save_dir: /home/hzhao/ZHN/workspace/Object_Detection_RGB/darelab_face_nanodet
+checkpoint:
+  dir: checkpoints  # 相对于 save_dir，也支持绝对路径
+  save_last: true
+  save_best: true  # 各精度阶段分别按验证集 mAP@[.5:.95] 保存最佳模型
+dataloader:
+  train:
+    batch_size: 16
+    num_workers: 4
+    name: DareLabFaceDataLoader
+    img_path: /home/hzhao/ZHN/datasets/DareLab_Face
+    ann_path: /home/hzhao/ZHN/datasets/DareLab_Face/annotations/train.json  # 与 DareLab_Face_DCT 相同的划分；输入为 (像素 - 128) / 128
+    augmentation:  # 仅训练集生效；与 DCT_Object_Detection 的 RGB 对照实验一致
+      flip: 0.5  # 水平翻转概率
+      scale: [0.6, 1.4]  # 以图像中心随机缩放
+      translate: 0.1  # 随机平移，占宽/高的比例
+      brightness: 0.2  # 亮度偏移（像素归一化到 [0, 1] 后）
+      contrast: [0.8, 1.2]
+      saturation: [0.8, 1.2]
+  val:
+    batch_size: 16
+    num_workers: 4
+    name: DareLabFaceDataLoader
+    img_path: /home/hzhao/ZHN/datasets/DareLab_Face
+    ann_path: /home/hzhao/ZHN/datasets/DareLab_Face/annotations/val.json  # 验证与测试共用
+device:
+  gpu_ids: [0]
+  precision: 32-true
+grad_clip: 1.0
+model:
+  name: Nanodet
+  arch:
+    name: OneStageDetector
+    backbone:
+      name: AxonBackbone
+      input_channels: 3
+      stage_strides: [2, 2, 2, 2, 2]  # 原图下采样 8/16/32；DCT 版为 [1, 1, 1, 2, 2]
+    fpn:
+      name: AxonFPN
+      in_channels: [32, 64, 96]
+      out_channels: 64
+    head:
+      name: AxonNanoDetHead
+      num_classes: 1
+      input_channel: 64
+      feat_channels: 64
+      strides: [8, 16, 32]  # 原图像素坐标
+      loss:
+        loss_qfl:
+          use_sigmoid: true
+          beta: 2.0
+          loss_weight: 1.0
+        loss_dfl:
+          loss_weight: 0.25
+        loss_bbox:
+          loss_weight: 2.0
+schedule:
+  total_epochs: 90
+  val_intervals: 1
+  optimizer:
+    name: AdamW
+    lr: 0.001
+    weight_decay: 0.0
+  lr_schedule:
+    name: CosineAnnealingLR
+    T_max: 90
+    eta_min: 1.0e-05
+quantization:
+  stage_epochs:  # 依次 FP32 → INT24 → INT16 → INT8，总和须等于 schedule.total_epochs
+    fp32: 50
+    int24: 10
+    int16: 10
+    int8: 20
+  observer_freeze_after: 5  # 每个 QAT 阶段统计 5 个 epoch 后冻结 observer，null 表示不冻结
+  bn_freeze_after: 5
+log:
+  dir: logs  # 相对于 save_dir，也支持绝对路径；文字日志写入 train.log，W&B 文件位于其 wandb 子目录
+  interval: 10
+  wandb:  # 删除整个 wandb 段则改用 CSVLogger，指标保存在 logs/metrics/version_*/metrics.csv
+    project: object-detection-rgb
+    name: darelab-face-nanodet-progressive
+    entity: null  # W&B 用户名或团队名；null 使用账号默认值
+    offline: false  # 无网络调试时设为 true
+    id: null  # 继续同一条在线 W&B run 时填写原 run ID
