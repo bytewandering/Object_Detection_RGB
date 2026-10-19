@@ -4,7 +4,7 @@ Run directly: python Object_Detection_RGB/tools/test.py WORKSPACE [--checkpoint 
 WORKSPACE is the save_dir of a run (holding config.yml and the checkpoint dir).
 By default every model_best_<stage>.ckpt is tested. The test split reads
 dataloader.val of config.yml (test uses val.json); results go to
-WORKSPACE/test results/<checkpoint stem>_<time>/.
+WORKSPACE/test results/<checkpoint stem>/ (replacing an earlier test of it).
 """
 
 import argparse
@@ -20,7 +20,7 @@ import torch
 
 from Object_Detection_RGB.dataloaders import build_dataloader
 from Object_Detection_RGB.tasks import build_test_task
-from Object_Detection_RGB.tasks.training_tasks.TrainingTask_Object_Detection_RGB import STAGES
+from Object_Detection_RGB.tasks.training_tasks.TrainingTask_NanoDet_RGB import STAGES
 from Object_Detection_RGB.utils import load_config
 
 

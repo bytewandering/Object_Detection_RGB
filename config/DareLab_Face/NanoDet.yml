@@ -1,4 +1,4 @@
-task_name: TrainingTask_Object_Detection_RGB
+task_name: TrainingTask_NanoDet_RGB
 save_dir: /home/hzhao/ZHN/workspace/Object_Detection_RGB/darelab_face_nanodet
 checkpoint:
   dir: checkpoints  # 相对于 save_dir，也支持绝对路径

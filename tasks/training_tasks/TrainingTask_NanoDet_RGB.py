@@ -32,7 +32,7 @@ def _plain(value):
     return value
 
 
-class TrainingTask_Object_Detection_RGB(LightningModule):
+class TrainingTask_NanoDet_RGB(LightningModule):
     """cfg.model/schedule/log follow the NanoDet task layout.
 
     The batch comes from DareLabFaceDataLoader: img is the native RGB image and

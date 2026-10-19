@@ -3,7 +3,7 @@
 trainer.test(task, loader, ckpt_path=...) restores a checkpoint written by
 TrainingTask_FOMO_RGB with observers frozen, reports centroid precision/recall/F1
 at model.score_threshold and draws the face probability heatmap. Results go to
-<save_dir>/test results/<checkpoint stem>_<time>/.
+<save_dir>/test results/<checkpoint stem>/ (replacing an earlier test of it).
 """
 
 from pathlib import Path
@@ -11,7 +11,7 @@ from pathlib import Path
 import torch
 
 from ..training_tasks.TrainingTask_FOMO_RGB import TrainingTask_FOMO_RGB
-from ..training_tasks.TrainingTask_Object_Detection_RGB import _plain
+from ..training_tasks.TrainingTask_NanoDet_RGB import _plain
 from ..training_tasks.utils.centroid_metrics import centroid_metrics, load_ground_truth, match_image
 from .utils import test_utils
 
@@ -85,7 +85,7 @@ class TestingTask_FOMO_RGB(TrainingTask_FOMO_RGB):
 
     @staticmethod
     def _draw(image, heatmap, truths, predictions):
-        """Overlay the face probability heatmap, GT boxes and predicted centroids."""
+        """Overlay the face probability heatmap, GT boxes, object cell boxes and centroids."""
         import numpy as np
         from PIL import Image, ImageDraw
 
@@ -95,11 +95,14 @@ class TestingTask_FOMO_RGB(TrainingTask_FOMO_RGB):
         draw = ImageDraw.Draw(canvas)
         test_utils.draw_truths(draw, truths)
         for item in predictions:
+            # Bounding box of the object's above-threshold cells, not a learned face box.
+            draw.rectangle(item["bbox_xyxy"], outline="cyan", width=1)
             x, y = item["centroid"]
             draw.ellipse((x - 3, y - 3, x + 3, y + 3), fill="yellow", outline="black")
             draw.text((x + 4, max(0, y - 12)), f"{item['score']:.2f}", fill="yellow")
         draw.text((4, 4), "GT: green | ignored: orange | centroid: yellow | red: face prob",
                   fill="white", stroke_width=1, stroke_fill="black")
+        draw.text((4, 16), "cyan: cells >= threshold", fill="white", stroke_width=1, stroke_fill="black")
         return canvas
 
     def on_test_epoch_end(self):

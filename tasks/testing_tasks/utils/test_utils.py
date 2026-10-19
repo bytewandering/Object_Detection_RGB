@@ -2,7 +2,7 @@
 
 import hashlib
 import json
-from datetime import datetime
+import shutil
 from pathlib import Path
 
 
@@ -13,10 +13,11 @@ def annotation_path(cfg):
 
 
 def output_dir(cfg, checkpoint):
-    """New <save_dir>/test results/<checkpoint stem>_<time>/ directory."""
-    path = Path(cfg.save_dir) / "test results" / (
-        f"{Path(checkpoint).stem}_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}")
-    path.mkdir(parents=True, exist_ok=False)
+    """Empty <save_dir>/test results/<checkpoint stem>/ directory; a previous test of it is replaced."""
+    path = Path(cfg.save_dir) / "test results" / Path(checkpoint).stem
+    if path.exists():
+        shutil.rmtree(path)
+    path.mkdir(parents=True)
     return path
 
 

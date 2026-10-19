@@ -4,19 +4,19 @@ trainer.test(task, loader, ckpt_path=...) restores a checkpoint written by the
 training task: on_load_checkpoint restores the quantization stage before the
 fake-quant buffers load, and observers stay frozen during evaluation. The task
 writes results.json and sampled images to
-<save_dir>/test results/<checkpoint stem>_<time>/.
+<save_dir>/test results/<checkpoint stem>/ (replacing an earlier test of it).
 """
 
 from pathlib import Path
 
 import torch
 
-from ..training_tasks.TrainingTask_Object_Detection_RGB import TrainingTask_Object_Detection_RGB, _plain
+from ..training_tasks.TrainingTask_NanoDet_RGB import TrainingTask_NanoDet_RGB, _plain
 from ..training_tasks.utils.centroid_metrics import box_centroids, centroid_metrics, load_ground_truth
 from .utils import test_utils
 
 
-class TestingTask_Object_Detection_RGB(TrainingTask_Object_Detection_RGB):
+class TestingTask_NanoDet_RGB(TrainingTask_NanoDet_RGB):
     """Evaluate one checkpoint on dataloader.val of its run (test uses val.json).
 
     score_threshold only affects drawn boxes, image-level and centroid metrics;

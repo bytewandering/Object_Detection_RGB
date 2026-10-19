@@ -10,10 +10,10 @@ from pathlib import Path
 import torch
 
 from .utils.centroid_metrics import centroid_metrics, load_ground_truth
-from .TrainingTask_Object_Detection_RGB import TrainingTask_Object_Detection_RGB
+from .TrainingTask_NanoDet_RGB import TrainingTask_NanoDet_RGB
 
 
-class TrainingTask_FOMO_RGB(TrainingTask_Object_Detection_RGB):
+class TrainingTask_FOMO_RGB(TrainingTask_NanoDet_RGB):
 
     @staticmethod
     def _validate_model(cfg):
